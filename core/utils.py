@@ -51,7 +51,7 @@ font_style = cv2.FONT_HERSHEY_SIMPLEX
 # line = [(922, 0), (922, 1065)]
 # # 近似水平线
 
-line = [(0, 530), (2100, 530)] # for vehicle.mp4
+line = [(0, 400), (2100, 400)] # for vehicle.mp4
 # line = [(0, 430), (2100, 430)] # for people.mp4
 
 
@@ -426,10 +426,10 @@ def video_draw_bbox(image, bboxes, fps, classes=read_class_names(cfg.YOLO.CLASSE
         # # 当前时间
         # cv2.putText(image,"{}".format( time.strftime("%Y%m%d %H:%M:%S", time.localtime()) ),(horizontal_increment , sum_increment + 60 ), font_style, font_scale, (254,196,8), thickness = text_thickness, lineType=cv2.LINE_AA)
         # 主网络
-        cv2.putText(image, "{}".format("YOLOv3"), (horizontal_increment, sum_increment + 60),
+        cv2.putText(image, "{}".format("YOLOv5"), (horizontal_increment, sum_increment + 60),
                     font_style, font_scale, (254, 196, 8), thickness=text_thickness, lineType=cv2.LINE_AA)
         # 署名描述
-        cv2.putText(image, "{}".format("Clemente420"), (horizontal_increment, sum_increment + 80),
+        cv2.putText(image, "{}".format("CAP AI 118"), (horizontal_increment, sum_increment + 80),
                     font_style, font_scale, (254, 196, 8), thickness=text_thickness, lineType=cv2.LINE_AA)
     else:
         # left_count
