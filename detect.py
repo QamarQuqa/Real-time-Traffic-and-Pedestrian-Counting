@@ -17,6 +17,20 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 import core.utils as utils
 import tensorflow as tf
 import numpy as np
+
+from pymongo import MongoClient
+from pprintpp import pprint
+
+# connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
+client = MongoClient("mongodb+srv://user:1234@cluster0.vfc9s.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+db=client.counts
+
+# Issue the serverStatus command and print the results
+serverStatusResult=db.command("serverStatus")
+pprint(serverStatusResult)
+
+counter_dict ={}
+
 def detect(save_img=False):
     source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
@@ -61,7 +75,7 @@ def detect(save_img=False):
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
-    t0 = time.time()
+    startPushTime = time.time()
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -117,10 +131,15 @@ def detect(save_img=False):
                 curr_time = time.time()
                 exec_time_1 = curr_time - prev_time
                 fps = 1/exec_time_1
-                image = utils.video_draw_bbox(frame, det, fps)
+                image, counter_dict = utils.video_draw_bbox(frame, det, fps)
                 # FPS LOG记录
                 curr_time_2 = time.time()
                 exec_time_2 = curr_time_2 - prev_time
+
+                if time.time() - startPushTime> 60: 
+                    startPushTime = time.time()
+                    result=db.reviews.insert({"counter_dict": counter_dict, "pushTime": time.time()})
+                    print(result)
 
             #     # Print results
             #     for c in det[:, -1].unique():
