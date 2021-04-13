@@ -462,7 +462,7 @@ def video_draw_bbox(image, bboxes, fps, classes=read_class_names(cfg.YOLO.CLASSE
         cv2.putText(image, "{}".format("Clemente420"), (horizontal_increment, sum_increment + 80),
                     font_style, font_scale, (254, 196, 8), thickness=text_thickness, lineType=cv2.LINE_AA)
 
-    return image
+    return image, counter_dict
 
 
 def draw_bbox(image, bboxes, classes=read_class_names(cfg.YOLO.CLASSES), show_label=True):

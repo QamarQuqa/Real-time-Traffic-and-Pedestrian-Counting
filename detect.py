@@ -17,7 +17,22 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 import core.utils as utils
 import tensorflow as tf
 import numpy as np
+
+from pymongo import MongoClient
+from pprintpp import pprint
+import copy
+
+# connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
+client = MongoClient("mongodb+srv://user:1234@cluster0.vfc9s.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+db=client.counts
+
+# Issue the serverStatus command and print the results
+serverStatusResult=db.command("serverStatus")
+pprint(serverStatusResult)
+
 def detect(save_img=False):
+    counter_dict ={}
+    prev_dict = {}
     source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
@@ -61,7 +76,7 @@ def detect(save_img=False):
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
-    t0 = time.time()
+    startPushTime = time.time()
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -117,10 +132,45 @@ def detect(save_img=False):
                 curr_time = time.time()
                 exec_time_1 = curr_time - prev_time
                 fps = 1/exec_time_1
-                image = utils.video_draw_bbox(frame, det, fps)
+                image, counter_dict = utils.video_draw_bbox(frame, det, fps)
                 # FPS LOG记录
                 curr_time_2 = time.time()
                 exec_time_2 = curr_time_2 - prev_time
+
+                if time.time() - startPushTime> 10:
+                    dictToPush = {"pushTime": time.time()} 
+                    startPushTime = time.time()
+                    try: 
+                        dictToPush["person"] = {"up": counter_dict["person"]["up"] - prev_dict["person"]["up"], "down": counter_dict["person"]["down"] - prev_dict["person"]["down"], "left": counter_dict["person"]["left"] - prev_dict["person"]["left"], "right": counter_dict["person"]["right"] - prev_dict["person"]["right"]}
+                    except:
+                        if "person" in counter_dict.keys():
+                            dictToPush["person"] = counter_dict["person"]
+                    try: 
+                        dictToPush["car"] = {"up": counter_dict["car"]["up"] - prev_dict["car"]["up"], "down": counter_dict["car"]["down"] - prev_dict["car"]["down"], "left": counter_dict["car"]["left"] - prev_dict["car"]["left"], "right": counter_dict["car"]["right"] - prev_dict["car"]["right"]}
+                    except:
+                        if "car" in counter_dict.keys():
+                            dictToPush["car"] = counter_dict["car"]
+                    try: 
+                        dictToPush["motorcycle"] = {"up": counter_dict["motorcycle"]["up"] - prev_dict["motorcycle"]["down"], "down": counter_dict["motorcycle"]["down"] - prev_dict["motorcycle"]["up"], "left": counter_dict["motorcycle"]["left"] - prev_dict["motorcycle"]["left"], "right": counter_dict["motorcycle"]["right"] - prev_dict["motorcycle"]["right"]}
+                    except:
+                        if "motorcycle" in counter_dict.keys():
+                            dictToPush["motorcycle"] = counter_dict["motorcycle"]
+                    try: 
+                        dictToPush["bus"] = {"up": counter_dict["bus"]["up"] - prev_dict["bus"]["up"], "down": counter_dict["bus"]["down"] - prev_dict["bus"]["down"], "left": counter_dict["bus"]["left"] - prev_dict["bus"]["left"], "right": counter_dict["bus"]["right"] - prev_dict["bus"]["right"]}
+                    except:
+                        if "bus" in counter_dict.keys():
+                            dictToPush["bus"] = counter_dict["bus"]
+                    try: 
+                        dictToPush["truck"] = {"up": counter_dict["truck"]["up"] - prev_dict["truck"]["up"], "down": counter_dict["truck"]["down"] - prev_dict["truck"]["down"], "left": counter_dict["truck"]["left"] - prev_dict["truck"]["left"], "right": counter_dict["truck"]["right"] - prev_dict["truck"]["right"]}
+                    except:
+                        if "truck" in counter_dict.keys():
+                            dictToPush["truck"] = counter_dict["truck"]
+
+                    result=db.reviews.insert_one(dictToPush)
+
+
+                    prev_dict = copy.deepcopy(counter_dict)
+                    
 
             #     # Print results
             #     for c in det[:, -1].unique():
