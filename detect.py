@@ -142,6 +142,7 @@ def detect(save_img=False):
                 if time.time() - startPushTime> 60:
                     dictToPush = {"pushTime": time.time()} 
                     startPushTime = time.time()
+                    
                     try: 
                         dictToPush["person"] = {"up": counter_dict["person"]["up"] - prev_dict["person"]["up"], "down": counter_dict["person"]["down"] - prev_dict["person"]["down"], "left": counter_dict["person"]["left"] - prev_dict["person"]["left"], "right": counter_dict["person"]["right"] - prev_dict["person"]["right"]}
                     except:
