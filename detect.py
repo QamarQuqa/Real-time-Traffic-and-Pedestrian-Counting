@@ -114,6 +114,7 @@ def detect(save_img=False):
             else:
                 p, s, im0, frame = path, '', im0s, getattr(dataset, 'frame', 0)
 
+
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
@@ -138,7 +139,7 @@ def detect(save_img=False):
                 curr_time_2 = time.time()
                 exec_time_2 = curr_time_2 - prev_time
 
-                if time.time() - startPushTime> 10:
+                if time.time() - startPushTime> 60:
                     dictToPush = {"pushTime": time.time()} 
                     startPushTime = time.time()
                     try: 
