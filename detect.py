@@ -22,6 +22,7 @@ from pymongo import MongoClient
 from pprintpp import pprint
 import copy
 
+
 # connect to MongoDB, change the << MONGODB URL >> to reflect your own connection string
 client = MongoClient("mongodb+srv://user:1234@cluster0.vfc9s.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db=client.counts
